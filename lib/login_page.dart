@@ -4,18 +4,15 @@ import 'package:api_example/recipe_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'main.dart';
 
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
-// static final RECIPE_URL = 'https://rcapp.utech.dev/api/recipes';
-// static final LOGIN_URL = 'https://rcapp.utech.dev/api/auth/login';
+
 class _LoginPageState extends State<LoginPage> {
+  
   final TextEditingController emailController = TextEditingController();
   final FocusNode emailNode = FocusNode();
   final TextEditingController passwordController = TextEditingController();
@@ -69,12 +66,6 @@ class _LoginPageState extends State<LoginPage> {
                 _isLoading = true;
               });
               performLogin();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => RecipePage(),
-                ),
-              );
             },
     );
   }
@@ -84,39 +75,72 @@ class _LoginPageState extends State<LoginPage> {
       "email": emailController.text.toString(),
       "password": passwordController.text.toString(),
     };
-    var loginUrl = 'https://rcapp.utech.dev/api/auth/login';
-
+    print(params);
     await http
-        .post(
-          loginUrl,
-          body: params,
-        )
+        .post("https://rcapp.utech.dev/api/auth/login",
+            body: json.encode(params),
+            headers: {"Content-Type": "application/json"})
         .timeout(Duration(seconds: 10))
         .then(
-      (value) {
-        print("status code Token: ${value.statusCode}");
-        print(value.body);
-        final data = json.encode(value.body);
-        if (value.statusCode == 200) {
-          setState(() {
-            _isLoading = false;
-          });
-          var data = json.decode(value.body);
-        } else {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      },
-    );
+          (value) {
+            print("status code Token: ${value.statusCode}");
+            print(value.body);
+            final data = json.encode(value.body);
+            if (value.statusCode == 200) {
+              setState(() {
+                _isLoading = false;
+              });
+              var data = json.decode(value.body);
+              String token = data["result"]["token"].toString();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RecipePage(
+                    token: token,
+                  ),
+                ),
+              );
+            } else {
+              setState(() {
+                _isLoading = false;
+              });
+              print(value.body);
+            }
+          },
+        );
   }
+  // performLogin() async {
+  //   var params = {
+  //     'email': emailController.text.toString(),
+  //     'password': passwordController.text.toString(),
+  //   };
+  //   var loginUrl = 'https://rcapp.utech.dev/api/auth/login';
 
-   getRecipe() async{
-    var rUrl = 'https://rcapp.utech.dev/api/recipes';
-    await http.get(rUrl,headers: {
-      
-    });
-  }
+  //   await http
+  //       .post(
+  //         loginUrl,
+  //         body: params,
+  //       )
+  //       .timeout(Duration(seconds: 10))
+  //       .then(
+  //     (value) {
+  //       print("status code Token: ${value.statusCode}");
+  //       print(value.body);
+  //       final data = json.decode(value.body);
+  //       if (value.statusCode == 200) {
+  //         setState(() {
+  //           _isLoading = false;
+  //         });
+  //         var data = json.decode(value.body);
+  //         print('$data["response"]');
+  //       } else {
+  //         setState(() {
+  //           _isLoading = false;
+  //         });
+  //       }
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
