@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:api_example/recipe_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,21 +12,18 @@ class RecipePage extends StatefulWidget {
 }
 
 class _RecipePageState extends State<RecipePage> {
-
   bool isLoading = true;
   dynamic recipeData;
   @override
-  initState(){
+  initState() {
     super.initState();
     getRecipe();
   }
 
-  getRecipe() async{
+  getRecipe() async {
     var rUrl = 'https://rcapp.utech.dev/api/recipes';
     await http.get(rUrl,
-        headers: {
-        "Authorization" : "Bearer ${widget.token}"
-    }).then((value){
+        headers: {"Authorization": "Bearer ${widget.token}"}).then((value) {
       print(value.statusCode);
       print(value.body);
       if (value.statusCode == 200) {
@@ -34,48 +32,154 @@ class _RecipePageState extends State<RecipePage> {
         });
         var data = json.decode(value.body);
         recipeData = data;
-
       } else {
         setState(() {
           isLoading = false;
         });
         print(value.body);
-
       }
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Recipe"),),
-      body:
-      isLoading?Center(child: CircularProgressIndicator(),):
-      Container(
-        child: ListView.builder(
-          itemCount: recipeData["data"].length,
-          itemBuilder: (BuildContext ctx, int index){
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Card(
-                child: Row(
-                  children: [
-                    Image.network(recipeData["data"][index]["image_url"]),
-                    Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(recipeData["data"][index]["title"].toString()),
-                        )),
-                    //Add more
-
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+      appBar: AppBar(
+        title: Text("Recipe"),
       ),
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Container(
+              child: ListView.builder(
+                itemCount: recipeData["data"].length,
+                itemBuilder: (BuildContext ctx, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecipeDetail(
+                            title: '${recipeData["data"][index]["title"]}',
+                            imageUrl:'${recipeData["data"][index]["image_url"]}',
+                            ingredients: [
+                              '${recipeData["data"][index]["ingredients"][0]["display_quantity"]} ${recipeData["data"][index]["ingredients"][0]["unit"]["name_plural"]}${recipeData["data"][index]["ingredients"][0]["preparation"]}${recipeData["data"][index]["ingredients"][0]["name"]}',
+
+                              '${recipeData["data"][index]["ingredients"][1]["display_quantity"]} tablespoons ${recipeData["data"][index]["ingredients"][1]["name"]}',
+                            ],
+                            sourceName: '${recipeData["data"][index]["source"]["name"]}',
+                            sourceUrl: '${recipeData["data"][index]["source_url"]}',
+                            siteUrl: '${recipeData["data"][index]["source"]["site_url"]}',
+                            prepTime: '${recipeData["data"][index]["prep_time"]}',
+                            cookTime: '${recipeData["data"][index]["cook_time"]}',
+                            totalTime: '${recipeData["data"][index]["total_time"]}',
+                            servings: '${recipeData["data"][index]["servings"]}',
+                            notes: '${recipeData["data"][index]["notes"]}',
+                            name: '${recipeData["data"][index]["source"]["name"]}',
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 5,
+                      margin: EdgeInsets.all(10),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: <Widget>[
+                            SizedBox(height: 10),
+                            InkWell(
+                              splashColor: Colors.red,
+                              // onTap: () {
+                              //   Navigator.of(context).push(
+                              //     MaterialPageRoute(
+                              //       builder: (context) => RecipeDetail(),
+                              //     ),
+                              //   );
+                              // },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(15),
+                                ),
+                                child: Image.network(
+                                  recipeData["data"][index]["image_url"],
+                                  // width: double.infinity,
+                                  // height: 250,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 40),
+                              child: Text(
+                                recipeData["data"][index]["title"],
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  //color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 20,
+                                      color: Colors.grey.withOpacity(0.9),
+                                    ),
+                                    SizedBox(width: 5),
+                                    FittedBox(
+                                      child: Text(
+                                        '${recipeData["data"][index]["total_time"]} Mins',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          // fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(width: 10),
+                                Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.room_service,
+                                      size: 20,
+                                      color: Colors.grey.withOpacity(0.9),
+                                    ),
+                                    SizedBox(width: 5),
+                                    FittedBox(
+                                      child: Text(
+                                        '${recipeData["data"][index]["servings"]} Serves',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          //fontWeight: FontWeight.w600,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
